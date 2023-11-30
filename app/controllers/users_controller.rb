@@ -24,8 +24,20 @@ class UsersController < ApplicationController
 
   def destroy
     user = User.find_by_id(params[:id])
-    user.destroy
-    render json: 'User deleted successfully', status: :ok
+    if user.nil?
+      render json: 'User not found', status: :not_found
+    else
+      user.recipes.each do |r|
+        r.recipe_foods.destroy_all
+        r.destroy
+      end
+      user.foods.each do |f|
+        f.recipe_foods.destroy_all
+        f.destroy
+      end
+      user.destroy
+      render json: 'User and all related recipes, foods, and recipe_foods deleted successfully', status: :ok
+    end
   end
 
   private
